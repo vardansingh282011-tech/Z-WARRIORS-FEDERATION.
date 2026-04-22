@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z Warriors | Supreme Portal</title>
+    <style>
+        /* ================= THEME VARIABLES ================= */
+        :root {
+            --bg-base: #050505; --bg-surface: #111; --bg-surface-hover: #222;
+            --primary: #e67e22; --primary-glow: rgba(230, 126, 34, 0.5);
+            --secondary: #3498db; --text-main: #eee; --text-muted: #888;
+            --border: #333; --danger: #e74c3c; --success: #2ecc71; --warning: #f1c40f;
+            --soviet-red: #cc0000;
+        }
+
+        [data-theme="light"] {
+            --bg-base: #f0f2f5; --bg-surface: #fff; --bg-surface-hover: #e4e6e9;
+            --primary: #d35400; --text-main: #1c1e21; --border: #ccd0d5;
+        }
+
+        [data-theme="saiyan"] {
+            --bg-base: #fffde7; --bg-surface: #fff9c4; --bg-surface-hover: #fff59d;
+            --primary: #fbc02d; --primary-glow: rgba(251, 192, 45, 0.8);
+            --text-main: #000; --border: #fbc02d;
+            box-shadow: inset 0 0 100px rgba(251, 192, 45, 0.5);
+        }
+
+        /* ================= GLOBAL ================= */
+        body { font-family: 'Inter', sans-serif; background: var(--bg-base); color: var(--text-main); margin: 0; padding: 0; transition: 0.3s; cursor: crosshair; overflow-x: hidden; scroll-behavior: smooth; }
+        
+        /* Feature 38: Scroll to top */
+        #scrollTop { position: fixed; bottom: 80px; right: 20px; background: var(--primary); color: #000; border: none; padding: 10px 15px; border-radius: 50%; cursor: pointer; display: none; z-index: 1001; font-weight: bold;}
+
+        /* Feature 23: Decree Marquee */
+        .decree-ticker { background: var(--danger); color: white; padding: 5px; font-weight: bold; font-size: 0.9rem; white-space: nowrap; overflow: hidden; position: fixed; top: 0; width: 100%; z-index: 2000; }
+        .decree-ticker span { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+
+        /* Header */
+        header { background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); position: sticky; top: 25px; z-index: 1000; }
+        .logo h1 { margin: 0; color: var(--primary); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
+        nav { display: flex; gap: 8px; flex-wrap: wrap; }
+        nav button { background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 0.85rem;}
+        nav button:hover, nav button.active { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        .container { max-width: 1300px; margin: 40px auto; padding: 0 20px 100px 20px; display: flex; gap: 20px;}
+        
+        /* Feature 34: Quick Rules Sidebar */
+        .sidebar { width: 250px; background: var(--bg-surface); border: 1px solid var(--border); padding: 15px; border-radius: 8px; height: fit-content; position: sticky; top: 100px; }
+        .main-content { flex: 1; min-width: 0; }
+
+        /* Feature 29: Transitions */
+        .tab-content { display: none; animation: fadeUp 0.5s ease forwards; }
+        .tab-content.active { display: block; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Components */
+        .card { background: var(--bg-surface); border: 1px solid var(--border); padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        
+        .doc-text { white-space: pre-line; background: #0a0a0a; padding: 30px; border-radius: 8px; border-left: 4px solid var(--primary); font-size: 1.05rem; line-height: 1.8; color: #ccc;}
+        .law-block { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px dashed var(--border); }
+        .law-title { color: var(--secondary); font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
+
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; background: var(--bg-base); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
+        .btn { background: var(--primary); color: #000; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; width: 100%; text-transform: uppercase; }
+        .btn:hover { box-shadow: 0 0 10px var(--primary-glow); }
+
+        /* Feature 25: ID Cards */
+        .id-card { border: 2px solid var(--primary); border-radius: 10px; background: linear-gradient(135deg, var(--bg-surface) 0%, #000 100%); padding: 15px; display: flex; gap: 15px; align-items: center; position: relative; overflow: hidden;}
+        .id-card::after { content: 'Z-WARRIOR'; position: absolute; opacity: 0.05; font-size: 3rem; font-weight: 900; transform: rotate(-15deg); right: -10px; bottom: -10px; }
+        .avatar { width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; color: #000; }
+        
+        /* Iframe Containers for Google Forms/Sheets */
+        .iframe-container { width: 100%; height: 400px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 10px; }
+        
+        /* Anthem Footer */
+        footer { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 2px solid var(--soviet-red); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 2000; box-sizing: border-box; }
+
+        .search-box { padding: 15px; background: var(--bg-surface); border: 2px solid var(--primary); width: 100%; border-radius: 30px; color: var(--text-main); font-size: 1.1rem; margin-bottom: 20px; outline: none;}
+    </style>
+</head>
+<body>
+
+    <div class="decree-ticker">
+        <span>🚨 PRESIDENTIAL DECREE: The 4th General Elections have concluded. Mega-Alliance holds majority. Protests regarding Law 22 loophole ongoing. 🚨</span>
+    </div>
+
+    <header>
+        <div class="logo"><h1>Z Warriors</h1></div>
+        <nav>
+            <button class="active" onclick="switchTab('dashboard')">HQ</button>
+            <button onclick="switchTab('constitution')">Constitution</button>
+            <button onclick="switchTab('chronicles')">Chronicles</button>
+            <button onclick="switchTab('citizens')">Registry</button>
+            <button onclick="switchTab('realtime')">Live Gov Hub</button>
+            <button onclick="switchTab('otaku')">Otaku Bot</button>
+            <button onclick="cycleTheme()">🌓 Theme</button>
+        </nav>
+    </header>
+
+    <div class="container">
+        
+        <aside class="sidebar">
+            <h3 style="color: var(--primary); margin-top: 0;">Quick Glance</h3>
+            <ul style="padding-left: 15px; font-size: 0.9rem; color: var(--text-muted);">
+                <li><strong>Law 9:</strong> Basic Structure is absolute.</li>
+                <li><strong>Law 11:</strong> Max 3 memes / 10 mins.</li>
+                <li><strong>Law 14:</strong> Don't ghost 24h pings.</li>
+                <li><strong>Law 1:</strong> CJI has Veto Power.</li>
+            </ul>
+            <hr style="border-color: var(--border);">
+            <h4>📍 Lucknow HQ</h4>
+            <p style="font-size: 0.85rem; color: var(--secondary);">Temp: 32°C (Simulated)<br>Status: Clear Skies</p>
+            <h4>💰 Treasury</h4>
+            <p style="font-size: 0.85rem; color: var(--warning);">Funds: 0.00 Z-Coin</p>
+        </aside>
+
+        <main class="main-content">
+            
+            <section id="dashboard" class="tab-content active">
+                <h1 style="border-bottom: 1px solid var(--border); padding-bottom: 10px;">Executive Dashboard</h1>
+                
+                <div class="card" style="border-left: 4px solid var(--primary);">
+                    <h2 style="margin: 0; color: var(--text-main);">📜 The Vardan Legacy Act</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Enacted: November 2025</p>
+                    <p>In recognition of founding the group on Nov 26, 2024, maintaining stability, drafting the Constitution, and navigating the Straw Hat Diplomacy, <strong>Vardan Singh</strong> is hereby designated the "Architect of the Republic." He holds eternal recognition and immunity from Law 11.</p>
+                </div>
+
+                <div class="grid-3">
+                    <div class="card">
+                        <h3 style="margin-top:0; color: var(--primary);">🏛️ Executive</h3>
+                        <p><strong>President:</strong> Mirza <span style="color:var(--danger)">(Suspended 2 Days)</span></p>
+                        <p><strong>CPL:</strong> Kushal</p>
+                        <p><strong>Coalition:</strong> UPA+NDA+CLSK</p>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-top:0; color: var(--secondary);">⚖️ Judiciary</h3>
+                        <p><strong>CJI Vardan:</strong> Architect</p>
+                        <p><strong>CJI Arnav S.:</strong> CLSK Ldr</p>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-top:0; color: var(--success);">🏆 WOTT</h3>
+                        <p><strong>Holders:</strong> Mirza, Divyam</p>
+                        <p><strong>Past:</strong> Vardan</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📈 Republic Activity Progress</h3>
+                    <p>Total Messages: 266,000 / 300,000 Milestone</p>
+                    <div style="background: var(--border); height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: var(--primary); width: 88.6%; height: 100%;"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>💬 Official Anime Quotes</h3>
+                    <blockquote style="border-left: 3px solid var(--primary); padding-left: 15px; font-style: italic; color: var(--text-muted);" id="daily-quote">"A dropout will beat a genius through hard work." - Rock Lee</blockquote>
+                    <input type="text" id="quote-input" placeholder="Submit a quote (saves locally)">
+                    <button class="btn" onclick="saveQuote()" style="width: auto;">Add</button>
+                </div>
+            </section>
+
+            <section id="constitution" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h1>The Supreme Constitution</h1>
+                    <button class="btn" onclick="window.print()" style="width:auto; font-size: 0.8rem;">📥 Save PDF</button>
+                </div>
+                
+                <input type="text" id="lawSearch" class="search-box" placeholder="🔍 Search laws (e.g., 'Veto', 'Impeachment')..." onkeyup="filterLaws()">
+
+                <div class="card" style="background: #0a0a0a;">
+                    <h3 style="margin-top: 0;">📖 Index</h3>
+                    <p style="font-size: 0.9rem; color: var(--primary);">Estimated Read Time: 12 minutes</p>
+                    <ul style="column-count: 2; font-size: 0.85rem; color: var(--secondary); cursor: pointer; list-style: none; padding: 0;">
+                        <li onclick="document.getElementById('c-preamble').scrollIntoView()">Preamble</li>
+                        <li onclick="document.getElementById('c-law1').scrollIntoView()">Law 1: CJI Powers</li>
+                        <li onclick="document.getElementById('c-law9').scrollIntoView()">Law 9: Basic Structure</li>
+                        <li onclick="document.getElementById('c-law21').scrollIntoView()">Law 21: Impeachment</li>
+                        <li onclick="document.getElementById('c-law22').scrollIntoView()">Law 22: Resignation Dates</li>
+                        <li onclick="document.getElementById('c-amend').scrollIntoView()">2026 Amendment Act</li>
+                    </ul>
+                </div>
+
+                <div class="doc-text">
+<div class="law-block" id="c-preamble">
+<div class="law-title">PREAMBLE</div>
+We, the members of Z WARRIORS, in order to establish a fair, transparent, and democratic community, do hereby ordain and establish this Constitution, dedicating ourselves to justice, freedom of expression, and responsible governance.
+Explanation: The Preamble is the spritual and functional foundation of Z WARRIORS, designed to ensure fairness, transparency, and democracy in every decision, action, and interaction.
+Core Principles
+• Justice: This guarantees the impartial enforcement of all rules for every member equally, including disciplinary measures, recalls, and elections.
+• Freedom of Expression: Members are allowed to voice opinions, jokes, or criticism as long as it is done civilly and respectfully, without abusive or discriminatory content. Fun and creativity are encouraged within these boundaries.
+• Responsible Governance: This principle binds administrators, the CJl and the President to adhere to all constitutional provisions while managing the group efficiently and upholding the core values.
+Significance
+The Preamble guides all laws and actions and cannot be bypassed. It serves as the ultimate basis for conflict resolution. Ultimately, the Preamble is the soul of Z WARRIORS, ensuring that all laws, elections, debates, and disciplinary actions are aligned with justice, democracy, and respect.
+</div>
+
+<div class="law-block" id="c-law1">
+<div class="law-title">Law 1: The Supreme Judicial Empowerment Act</div>
+To preserve justice, fairness, and accountability within the Z Warriors Constitution, the Chief Justice of Z Warriors (CJI) shall be vested with the following powers:
+Veto Referral Power - The CJl may temporarily block any Presidential or Administrative decision for 24 hours and refer it to a full-group vote, ensuring members have a say before enforcement.
+Final Trial Authority - The CJI shall preside over all trials or disciplinary hearings within the group. Their judgment shall be binding, except when explicitly overturned by a Presidential Decree.
+Vote of Justice - The CJI may, once per term, call a "Vote of Justice," where members decide on one major unresolved issue by compulsory voting, overriding all other authorities (including the President).
+Constitutional Safeguard Power - The CJI may strike down any new law or amendment that contradicts the Basic Structure (Respect, Democracy, Free Expression, Presidential Authority, etc.), unless 3/4 majority of the group supports it.
+Emergency Oversight Power - During a declared "Group Emergency," the CJl automatically becomes Co-Ruler, with equal administrative authority, though the President retains the final word.
+Term Security Power - The CJI cannot be removed mid-term except by a 3/4 majority of the group, ensuring independence of judiciary.
+Judicial Summon Power - The CJI may summon any member, including Administrators, to justify their actions or inactivity before the group.
+Sole Judicial Adjudication - The CJI shall be the sole presiding Judge for all formal civil and criminal court cases brought before the group's judicial body.
+</div>
+
+<div class="law-block" id="c-law2">
+<div class="law-title">Law 2: The Member Referendum Initiation Act</div>
+This provision outlines the process for active members to trigger a Mandatory Referendum on administrative changes that have stalled. The result of this referendum is binding.
+Trigger: The referendum can be triggered by a petition signed by 10% of active members.
+Definition of an Active Member: For the purpose of triggering a Mandatory Referendum or any other constitutional provision requiring a membership count, an Active Member is defined as follows: An individual who has sent a minimum of 25 civil and non-administrative messages within the group's main chat during the last 30 calendar days prior to the submission of the petition.
+Calculation: The 10% is calculated based on the number of active members at the moment the petition is submitted.
+Limitation: To prevent perpetual gridlock, a new referendum petition can only be initiated after the previous one is resolved or after a period of 1.5 months has passed.
+CJI Review: The Chief Justice of the I-IANS (CJI) must review the validity of the petition within 24 hours of submission.
+Referendum Trigger: Once the petition is verified and confirmed to meet the 10% threshold, the CJI must trigger the referendum process within the next 48 hours.
+Appeals: Any disputes regarding the validity or counting of signatures on the petition may be appealed directly to the President. The President's decision on the petition's validity is final.
+Simultaneous Petitions: If multiple valid petitions are submitted at the same time, they will be prioritized by their timestamp (first in, first out).
+Tie Resolution: In the event of a tie during the referendum vote, the President shall cast the tie-breaking vote, which is final.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 3: The Party & Alliance Act</div>
+To establish a clear hierarchy of appointment and opposition within the Z Warriors governance structure, the following mandates regarding Party Leaders and appointments shall be enforced:
+Prerogative of the Victor: The Leader of the Political Party securing the majority victory in an election shall hold the exclusive right to appoint the Chief Justice (CJI) and the Elected Administrator. The Winning Party Leader reserves the right to appoint themselves to either of these positions.
+Rights of the Minority: The Leader of the Party securing the second-highest number of votes (the Minority/Losing Party) shall hold the exclusive right to appoint the Leader of the Opposition (LoP) only if they secure at least 10% of the members' votes, ensuring a balanced check on power.
+Recall & Reappointment: Party Leaders retain the authority to remove or replace their appointees at any time during the term, provided that such changes do not violate the Basic Structure of the Constitution or leave a critical office vacant for an extended period.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 4: Judicial Appointment and Integrity</div>
+This provision ensures the impartiality and incorruptibility of the Judiciary by establishing a non-elective appointment process, shielding the Chief Justice (CJI) from political campaign influences.
+Presidential Consensus: The appointment of a CJI is predicated on the unanimous agreement of the Presidential branch. A candidate may only assume the bench if all serving Presidents formally ratify the selection.
+Unilateral Executive Appointment: In the event that the Clan is governed by a single President, that individual retains the sole authority to appoint either one or two CJIs, depending on the administrative needs and their personal discretion.
+Bicameral Executive Appointments: Under a tiered leadership system involving Senior Presidents (SP) and Junior Presidents (JP), the appointments are distributed as follows: The Office of the Senior President is empowered to appoint one (1) Chief Justice. The Office of the Junior President is empowered to appoint one (1) Chief Justice.
+Discretionary Waiver: Either office may voluntarily choose to waive their right to an appointment, leaving the position vacant or deferring to the other office's selection.
+Non-Elective Tenure: To prevent corruption and bias, the CJI shall never be chosen through a general election or popular vote, ensuring the role remains strictly merit-based and appointed by the High Command.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 5: The Administrator Emergency Power Act</div>
+This provision grants Administrators limited, immediate authority to handle minor disruptions, ensuring the group's smooth operation without constant oversight.
+Declaration: An Administrator may declare a "Micro-Emergency" to immediately enforce minor rules without seeking prior Presidential or CJI approval.
+Scope of Minor Rules: This power is strictly limited to issues such as spam control or muting a single, temporarily disruptive member.
+Duration Limit: A Micro-Emergency cannot exceed 6 hours. Any extension beyond this limit requires explicit approval from either the CJI or the President.
+Mandatory Reporting: The Administrator must report the declaration of the Micro-Emergency and the action taken to the CJI within 30 minutes of its initiation. Logging: The Administrator must formally log the action taken and the duration.
+Violation: Any violation of the 6-hour limit or failure to report correctly will be escalated to the CJI for disciplinary review. Edge Case: If multiple Administrators declare separate emergencies, each action must be sequentially logged and reported by the respective Administrator. Affected Member Appeal: Any member affected by an action taken under a Micro-Emergency has the right to appeal the action directly to the CJI. The CJI's decision regarding the appeal is final.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 6: The Oath Re-Affirmation Act</div>
+This provision mandates that all elected officials must publicly reaffirm their Oath of Office mid-way through their term to ensure continued commitment to the group's foundational principles.
+Requirement: All elected officials (specifically the CJI, VP, LOP & Administrators) must reaffirm their original Oath of Office. Format: The Oath must be reaffirmed via a voice message or by signing an Oath sent in the group chat. Timing: The reaffirmation must occur at the mid-term mark (0.75 months) of their elected tenure. Tracking: Administrators are responsible for tracking and logging the timely submission of the voice messages.
+Missed Deadline: If an official misses the deadline, the President must issue a formal Notice of Non-Compliance. Delay: The reaffirmation may only be delayed under a special exception granted by the President. Unavailability: In an edge case where an official is physically unavailable, a pre-recorded voice message of the Oath will suffice. Appeal Process: An official who receives a Notice of Non-Compliance may appeal the notice directly to the CJI. Review Timeline: The CJI must review the appeal and issue a binding decision within 12 hours.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 7: The Transparency of Vote Act</div>
+This provision ensures full transparency and accountability in all group-wide voting processes by requiring the President to make key data public.
+Mandatory Disclosure: The President must declare the total number of eligible voters and the final turnout percentage for every group-wide vote conducted. Privacy: Only individual vote selections remain private; the aggregate totals and turnout figures are public information. Hiding Turnout: The President is not allowed to hide the mandatory turnout data. Verification: Administrators verify the tally after the count is complete.
+Audit: If a discrepancy is suspected by any party, the CJI may audit the voting results for accuracy. Challenge: Members may challenge the results within a 24-hour window. Resolution: The CJI resolves any challenge to the voting results with a binding decision. Tie-Breaker: In the event of a tie, the President handles the tie-breaker by casting the final vote.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 8: The Member Grievance Petition Act</div>
+This provision establishes a formal mechanism for any member to address concerns by submitting a grievance directly to the CJI, ensuring a channel for accountability and resolution.
+Submission: Any member may submit a formal grievance to the CJI. Definition of Grievance: Grievances qualify if they pertain to rule violations, administrative actions, or abusive behavior within the group. Review Timeline: The CJI must review the submitted grievance within 48 hours of its reception. Hearing Decision: Based on the review, the CJI will decide whether the grievance is valid enough to warrant a formal hearing.
+Multiple Grievances: Members are permitted to file multiple grievances, with each submission being evaluated separately on its own merits. Enforcement: If the CJI finds the petition valid, they will formally call a hearing to address the issue. Frivolous Cases: Frivolous petitions (those lacking substance or filed in bad faith) may be dismissed with a formal warning to the submitting member. Finality of Decision: The CJI's final decision on the matter is generally binding. Appeal/Intervention: The President may only intervene in the case of a proven procedural error during the CJI's review or hearing process, but not to overturn the substantive ruling itself.
+</div>
+
+<div class="law-block" id="c-law9">
+<div class="law-title">Law 9: The Constitutional Guardrail Act</div>
+This provision establishes the Basic Structure of Z WARRIORS, defining the core principles that are permanently safeguarded and cannot be amended by any authority or majority.
+Core Components: The Basic Structure is defined by the principles of Respect, Democracy, Free Expression, and the established Presidential/CJI authority. Amendment Immunity: This structure cannot be amended under any circumstances. Even a 3/4 majority vote is irrelevant and cannot override this provision. Constitutional Guardrail: The CJI (Chief Justice of the I-IANS) is responsible for immediately blocking any proposal deemed unconstitutional because it conflicts with the Basic Structure. Support: The President must support the CJI in enforcing this essential guardrail when such a conflict arises.
+Automatic Invalidation: Any new rule or amendment that is found to conflict with the Basic Structure is automatically invalid from its inception. Appeal Status: Decisions based on the protection of the Basic Structure are not subject to appeal as this law is considered absolute and foundational.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 10: The Term Limit Extension Act</div>
+This provision enforces term limits to promote fresh leadership and prevent the entrenchment of power by restricting the number of consecutive terms an Administrator or the CJI may serve.
+Consecutive Limit: An Administrator or the CJI (Chief Justice of the I-IANS) cannot serve more than two consecutive terms in the same office. Cooling-Off Requirement: After serving two consecutive terms, the official must observe a mandatory 1.5 months cooling-off period before being eligible to run for that same office again. Partial Term Counting: Only terms of full 1.5 months duration are counted toward the two-term limit. Shorter, partial terms do not trigger the cooling-off period. Role Switching: A member can switch roles (e.g., from Admin to CJI or vice-versa), but the two-consecutive-term limit still applies specifically to the office they are currently holding.
+Enforcement: The President and the Administration are responsible for tracking these term limits, and any ineligible candidates must be blocked from running. Early Termination: If an official's term ends early (e.g., due to resignation or recall), the term counting for a new office (if they switch roles) is reset to zero. Eligibility Disputes: The CJI may be called upon to review and resolve any disputes over candidate eligibility based on these term limit rules.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 11: The Meme Regulation Act</div>
+This provision governs the posting of memes and similar informal content to ensure group chat remains manageable and productive by limiting the frequency of posts by individual members.
+Content Limit: Members are restricted to posting a maximum of 3 memes or similar content items per 10-minute interval. Format Inclusion: Any format counts toward the limit, including memes posted in voice messages or images. Individual Tracking: Each member’s posts are tracked individually; simultaneous posting by multiple members is still monitored against each person's limit.
+Celebration Exemption: Content posted during official group celebrations or festivals does not count towards the limit, provided the content remains respectful. These special exemptions are announced by an Administrator in advance. Formal Attachments: Memes attached to formal messages are valid as long as the member's individual 3-per-10-minute limit is not exceeded. First Violation: The member receives a warning message from an Administrator. Second Violation: The member is muted for 1 hour. Third Violation: The case is escalated to the CJI (Chief Justice of I-IANS) for review and potential further action. Right to Appeal: A member who has been punished (muted or referred to CJI) can appeal the decision to the CJI within 12 hours. CJI Review: The CJI may reduce or nullify the punishment if a justification (e.g., technical error, misinterpretation) is successfully presented.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 12: The Weekly Debate Act</div>
+This provision mandates the holding of weekly debates on relevant topics, fostering a space for discussion, engagement, and the free exchange of ideas among members.
+Frequency: The group will hold weekly debates on topics deemed relevant to the group or wider interests. Participation: Participation is optional; members are strongly encouraged, but not mandated, to join the discussions. Scheduling and Topic: Administrators are responsible for posting the debate topic and the official schedule. Conduct Rule: Personal attacks are strictly forbidden. Violations of the group's respectful conduct rules (abuse, insults, etc.) will be enforced immediately.
+Controversial Topics: If a debate topic is particularly controversial, the CJI (Chief Justice of I-IANS) may step in to moderate the discussion to ensure fairness and adherence to decorum. Enforcement Steps: Violations of decorum are first met with a warning from an Administrator, then escalated to the CJI for further disciplinary action upon repetition. Written Opinions: Members who miss the scheduled debate are permitted to submit written opinions on the topic. Tie Resolution: If a debate involves voting for a "winner" and results in a tie, the tie is resolved by consensus among the Administrators present. Appeals: Members may appeal any disciplinary actions arising from violations during the debate process directly to the CJI.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 13: The Member of the Month Recognition Act</div>
+This provision establishes a process for publicly recognizing one member each month for their outstanding positive contributions to the group, promoting encouragement and positive engagement.
+Frequency: One member per month is recognized for their efforts. Selection Process: The selection is made primarily by the Administrators, who also gather input from the general membership. Self-Nomination: Members can nominate themselves for the recognition. Consecutive Limit: To ensure fair rotation and opportunity for all, a member cannot be recognized consecutively (i.e., in two or more months in a row).
+Enforcement and Reward: An Administrator announces the monthly winner. The recognition includes a specific reward, such as a special role or an emoji badge, displayed for the month. Co-Recognition: In an edge case where multiple members have equal, outstanding contributions, a co-recognition (recognizing more than one member) may occur. Special Exceptions: Special exceptions related to festivals or group events may allow for temporary, additional recognition outside of the monthly winner rule. Disputes/Appeals: If a member feels they were unfairly overlooked despite significant contribution, they may submit a dispute to the CJI (Chief Justice of I-IANS) for review.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 14: The No Ghosting Act</div>
+This provision ensures critical group communications are addressed promptly by requiring members to respond to important messages within a defined timeframe to maintain efficient group functioning.
+Response Deadline: Members must respond to designated important messages within a 24-hour period. Important Messages Defined: Important messages include, but are not limited to: Administrator announcements, official group polls/votes, and CJI (Chief Justice of I-IANS) requests. Justified Absence: Absence from the group, and therefore failure to respond, can be justified by notifying an Administrator in advance.
+First Enforcement Step: Initial failure to respond triggers a reminder sent by an Administrator. Repeated Failure: If the reminder is ignored repeatedly, the member may face a temporary restriction from group activities. Consolidated Response: If multiple important messages are sent simultaneously (an edge case), a single, consolidated response addressing all points will suffice. Appeals: The CJI is responsible for reviewing any disputes or appeals regarding the validity of a member's justification for non-response or the application of temporary restrictions.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 15: The Festival Celebration Act</div>
+This provision establishes a framework for organizing official celebrations for festivals or events, designed to encourage group engagement and create a positive environment.
+Mandate: Official celebrations for festivals or significant events shall be organized by the group's leadership. Participation: Participation in all celebrations is voluntary; members are encouraged to join but it is not mandatory. Suggestions: Members are encouraged to suggest ideas for event activities and organization. Scheduling: Administrators are responsible for scheduling the celebrations and coordinating any conflicts that may arise with other scheduled group events.
+Fairness and Decorum: The CJI (Chief Justice of I-IANS) is tasked with ensuring fairness and proper decorum throughout the organization and execution of the event. Celebratory Content: During celebrations, the use of virtual gifts, emojis, or stickers is explicitly allowed. Appeals: Any disputes regarding fairness in the event organization (e.g., selection of activities, handling of conflicts) may be addressed to the CJI for resolution.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 16: The Fair Play in Elections Act</div>
+This provision mandates that all elections within the group must adhere to fair and transparent procedures, with oversight provided by both the Administration and the CJI to ensure the integrity of the democratic process.
+Mandate: All elections must follow established fair and transparent procedures. Monitoring: The entire process is monitored by the Administration (Admins) and the CJI (Chief Justice of I-IANS). Self-Voting: Members are allowed to vote for themselves. Vote Manipulation: Any attempt at vote manipulation is nullified, and the violators are issued a warning. Administration Duties: Admins are responsible for announcing the election schedule, securely collecting votes, and verifying candidate and voter eligibility.
+CJI Oversight: The CJI audits the election results and procedures if any dispute arises. Appeals Window: Members may petition the CJI to contest the results or procedure within 24 hours of the election results being announced. Technical Issues: Issues arising from technical difficulties (such as message delays) are jointly evaluated by the Administrators and the CJI. By-Election Edge Case: In cases of severe miscommunication or missing votes that significantly affect the outcome, a special by-election is called if deemed necessary by the Administrators/CJI/President oversight.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 17: The Knowledge Sharing Act</div>
+This provision encourages members to actively contribute to the group's collective growth by sharing beneficial knowledge, tips, or resources in a positive and constructive manner.
+Participation: Sharing is voluntary; posts are not mandatory for any member. Content Type: Shared knowledge must be educational, cultural, or related specifically to group interests and activities. Repetition: Members should avoid excessive repetition of similar content. Administrators may issue a warning if repetition becomes disruptive. Monitoring and Encouragement: Administrators are responsible for monitoring and actively encouraging valuable knowledge sharing within the group.
+Enforcement: Posts found to violate the rules of relevance or spam will result in a warning from an Administrator. Multiple Similar Posts (Edge Case): Multiple members posting similar content is allowed, provided the content is relevant and the posts are spaced out to prevent flooding the chat. Appeals: The CJI (Chief Justice of I-IANS) mediates any disputes or appeals concerning a post's relevance or the decision for its removal by an Administrator.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 18: The Group Memory Archive Act</div>
+This provision ensures the group maintains a historical record of significant activities and decisions by mandating that important decisions, events, and notable discussions shall be archived for future reference.
+Content Scope: The archive includes important decisions, events, and notable discussions. Archive Management: The archive is managed by the Administrators (Admins), with final oversight provided by the CJI(Chief Justice of I-IANS). Post Deletion: Old posts can only be deleted by mutual agreement among the leadership or through a direct Presidential directive.
+Enforcement: Admins must maintain an organized archive. Any missing entries are to be immediately reported to the CJI. Media Labeling (Edge Case): Archived media (such as images or videos) must be clearly labeled with the date and the author (or source). Conflicting Records (Edge Case): In the event that conflicting records of an event or decision are found in the archive, the CJI mediates to determine the accurate entry. Appeals: Members may request the addition or correction of entries in the archive by submitting their request to the CJI.
+</div>
+
+<div class="law-block">
+<div class="law-title">Law 19: The Random Fun Act</div>
+This provision mandates the organization of fun activities such as games, challenges, and quizzes, to be held randomly to boost morale and foster active member engagement.
+Activity Types: Activities include games, challenges, and quizzes. Scheduling: Activities shall be organized randomly by either the Administrators (Admins) or the President. Participation: Participation in these fun activities is optional and not mandatory. Rule Compliance: All activities must respect the core group conduct rules and cannot interfere with or override established constitutional provisions. Monitoring: Admins monitor participation and ensure fair conduct throughout the activities.
+Tie Resolution (Edge Case): In the event of a tie in quizzes or similar competitive activities, the tie will be resolved by the President. Incentives (Edge Case): Special prizes or recognition may be awarded to participants or winners. Appeals: Any disputes arising from the organization or conduct of these activities are to be resolved by the CJI (Chief Justice of I-IANS).
+</div>
+
+<div class="law-block" id="c-law21">
+<div class="law-title">Law 21: Presidential Impeachment and Resignation</div>
+This provision establishes the framework for ensuring the President remains accountable by outlining a clear process for their removal (impeachment) and the role of the judiciary and general membership.
+Judicial Removal Basis: The President may be initially removed if the Court of Z WARRIORS finds them guilty of the charges brought against them. Challenging the Verdict: If either party (the President or the accuser) disagrees with the Court's (Judge's) decision, they have the right to post a poll in the group. Impeachment by Vote (Verdict Challenge): If a verdict is challenged via a poll, the President will be removed from their position if ⅗ (three-fifths) of the voters agree to the removal.
+Removal Without a Case: The President can be removed without a formal court case only if a significantly higher threshold of ⅘ (four-fifths) of the voters agree to the removal in a group-wide poll. Impact of Challenge: Challenging the initial judicial verdict does not fully protect the President; instead, the case outcome then depends entirely on the majority decision of the group membership. Purpose: This dual system guarantees that the highest office remains accountable while simultaneously safeguarding it against the misuse of power or politically motivated judicial decisions.
+</div>
+
+<div class="law-block" id="c-law22">
+<div class="law-title">Law 22: Date Determination and Tenure Negotiation</div>
+This provision governs the process for both resignation and impeachment, ensuring these leadership transitions are not chaotic but are instead managed through a structured process overseen by the judiciary to guarantee stability.
+Oversight Authority: The entire process of resignation and impeachment is overseen by the CJI Bench (Court of Z WARRIORS). Resignation Date Authority: The CJI Bench holds the sole authority to determine the specific date of a President's resignation. This safeguard prevents confusion and ensures smooth transitions. Presidential Influence: The President may request a specific date for their resignation, but the final decision rests exclusively with the Bench.
+Negotiation Power (Extensions): The Bench has the power to negotiate extensions of the President’s tenure if valid reasons or urgent circumstances (e.g., delayed elections, critical ongoing discussions) require continuity of leadership. Accelerated Date: Conversely, if the President’s continued presence is actively disrupting group harmony, the Bench has the authority to bring the transition date forward. Constitutional Philosophy: This negotiation power reflects the flexibility of the Constitution, balancing strict enforcement of accountability with the wisdom of judicial discretion to protect the integrity of the transition without disrupting group stability.
+Purpose: This law demonstrates that governance within Z WARRIORS is both principled and pragmatic. This provision serves as a crucial safeguard to prevent the destabilization of leadership, ensuring that impeachment remains a serious tool rooted in justice, not merely political dissatisfaction.
+
+Impeachment Failure Threshold: If a group vote for the President's removal is held, the impeachment automatically fails if 60% (⅗) of the members do not support the removal. Immediate Reinstatement: Upon the failure of the impeachment attempt, the President remains in full office with all their powers restored. Frivolous Prevention: This threshold prevents frivolous or repetitive attempts to destabilize the leadership while respecting the collective will of the majority.
+Subsequent Attempts: Another impeachment attempt can be made, but only if a new, valid court case with new evidence or charges is formally brought forward. Temporary Strengthening: The failure of an impeachment attempt temporarily strengthens the President's position, as it demonstrates current majority support until further disputes arise. Filtering Mechanism: The fundamental requirement of a valid court case acts as a filter, stopping constant impeachment motions and ensuring the process is a serious tool, not a casual instrument of politics.
+Purpose: This provision shields the group from instability while reaffirming that leadership changes must be rooted in justice and accountability, not mere dissatisfaction.
+
+Automatic Role Assumption: Immediately upon resignation or removal (impeachment), the former President will automatically assume the position of Nominated Administrator. Purpose of the Role: This transitional role acknowledges their past contributions and ensures their institutional knowledge and experience continue to benefit the group. Duration: The status of Nominated Administrator lasts only until fresh elections are successfully held for both the CJI and the permanent Administrator posts. Power Level: The power of the Nominated Administrator is limited, serving mainly in an advisory and transitional capacity, rather than a full executive role. Legacy and Respect: This safeguard prevents the sudden exclusion of leaders and promotes respect for their legacy, even when they step down under pressure. Function: The Nominated Administrator acts as a transitional figure, offering guidance and continuity during electoral shifts. Principle: This law reinforces the principle that leadership in Z WARRIORS is service-oriented and dignified, not disposable.
+
+Re-nomination Pathway: Once the Nominated Administrator's tenure concludes, they may be re-nominated for a continued role or set aside, depending on a joint decision. Decision Authority for Re-nomination: The choice to re-nominate or set aside the former President is made by the CJI (Chief Justice of I-IANS) and the newly elected President working together. Synchronization Mandate: Elections for the new President shall always coincide with elections for the CJI and Administrator. Purpose of Synchronization: Linking elections ensures a holistic leadership cycle, preventing gaps in power and reaffirming that leadership transitions are a group-wide event, not isolated changes. Return to Presidency: A removed President can return to the office of President, but only if they are allowed to run in the Presidential Election by the Judge and subsequently win in the fresh elections. Underlying Principle: This mechanism preserves fairness while keeping democratic choice at the center, highlighting that no position is permanent and every leader remains accountable to the group’s collective will.
+
+Retention of Authority: The President retains full authority to exercise all their powers until the specific resignation date, which is determined by the CJI Bench. Purpose: This prevents confusion and ensures that leadership duties do not stall before the official handover occurs. Power Loss Trigger: The President does not lose their power once impeachment proceedings start; power is lost only after the resignation or removal officially takes effect. Responsibility Clause: All retained powers must be exercised responsibly, with the full awareness that the office is currently in transition. Misuse Intervention: If the President attempts to misuse their power during this transition period, a new case can be filed, and the CJI Bench may immediately intervene to mitigate the damage or accelerate the transition. Rationale: Continued authority is allowed to maintain order and avoid leaderless governance during the period between the decision to transition and the final handover. Core Goal: This rule ensures stability and continuity during times of executive transition.
+</div>
+
+<div class="law-block">
+<div class="law-title">Tie Resolution Protocol</div>
+Voting Entitlement: Both the President and the Chief Justice (CJ) are fully entitled to vote in all electoral or judicial polls conducted within Z WARRIORS. Vote Weight: The votes cast by the President and the CJ count equally with the vote of any other general member. Tie-Breaker Exclusion: Neither the President nor the CJ is designated as a tie-breaker in any voting scenario. Applicability: This rule applies without exception to all elections, judicial rulings (where applicable), and general group polls. Tie Resolution: In the event of a tie in any vote, the result shall remain officially undecided until a re-vote is successfully conducted. Purpose: The protocol ensures the President and CJ can participate fully in decisions while simultaneously maintaining neutrality and fairness when a vote results in a tied situation.
+</div>
+
+<div class="law-block">
+<div class="law-title">Presidential Removal Clauses</div>
+The President of Z WARRIORS shall remain in office until they voluntarily resign or are lawfully removed under this law.
+The President can only be removed through a formal No-Confidence Motion passed by at least 80% (⅘) of the total group members. Any member absent or not voting during the motion shall automatically be counted as supporting the President. Once a No-Confidence Motion fails, no new motion against the President can be brought for the next three months. Any attempt to remove the President without following this procedure shall be invalid and unconstitutional. This law is final and binding on all members, including the Chief Justice and Administrators. Any removal of the President that occurs outside the explicit clauses listed below is invalid.
+The following are the exclusive judicial cases under which a President can be removed:
+Binding Clause: This entire law is final and binding on all members, including the CJ and Admins. Any presidential removal outside of these five listed clauses is invalid.
+Application: Applies only if the President knowingly breaks major constitutional laws. Prerequisites: Requires 3 written warnings issued by the Chief Justice (CJ) and solid proof (such as screenshots, messages, or witnesses). Removal Threshold: Removal is valid only if ⅗ (three-fifths) of all members agree via a vote. Loophole Blocked: No verbal or fake proof is allowed; all evidence must be real and verified.
+Application: Applies if the President blocks, removes, or interferes with the CJ’s duties or the Court’s proceedings. Initial Action: The CJ may temporarily suspend the President, but final removal still requires ⅔ group approval. Loophole Blocked: The CJ cannot act alone; they must present the group with written reasons and verifiable proof.
+Application: Applies if the President bribes, threatens, or rigs votes or court outcomes. Proof Requirement: Proof must come from at least two independent members (witnesses or evidence sources). Loophole Blocked: False or personal claims of this nature result in the automatic dismissal of the case for a period of 1 month.
+Application: Applies if the President leaks private information, harms the group, or invites enemies to destabilize the group. Initial Action: The CJ may suspend immediately, but final removal needs ⅔ member approval. Loophole Blocked: Actions done by mistake or misunderstanding do not count toward this violation.
+Initiation: The CJ can call a Vote of Confidence only if clear written reasons explaining the loss of confidence are given to the group. Removal Threshold: Removal must pass with a ⅘ member vote combined with the CJ’s signed declaration. Loophole Blocked: Personal dislike or argument between the CJ and the President does not qualify as a reason for this clause.
+Final Clause (Transparency): All actions taken under this binding law must be recorded in writing, witnessed by at least two neutral members, and shared publicly in the group for absolute transparency. Any violation of this specific process is void and punishable.
+</div>
+
+<div class="law-block">
+<div class="law-title">Coalition Governance</div>
+In the event that no single party achieves a clear majority, or if parties choose to align for mutual benefit, the following rules of Coalition Governance shall apply:
+Formation of Alliance: Two or more parties (or Independent candidates) may formally register a Coalition to form a government.
+Hierarchy of Appointment by Vote Share:
+The Chief Justice: The Leader of the coalition partner with the highest number of individual votes shall appoint the Chief Justice.
+The Elected Administrator: The Leader of the coalition partner with the second-highest number of individual votes shall appoint the Elected Administrator.
+Tie-Breaker: In the event of a tie in vote share between coalition partners, the appointment rights shall be decided by an internal election among the coalition members or by a formal mutual agreement.
+Independent Candidate Provisions:
+If an Independent candidate joins a coalition and secures the highest votes within that alliance, they shall assume the role of Chief Justice. If the Independent candidate secures the second-highest votes, they shall assume the role of Elected Administrator. Security of Tenure for Independents: Unlike standard party appointees, an Independent candidate holding office within a Coalition cannot be removed by the coalition partners. Their tenure ends only upon their voluntary resignation or the dissolution of the Coalition.
+</div>
+
+<div class="law-block">
+<div class="law-title">Line of Succession and Interim Protocols</div>
+To ensure the continuity of governance and the preservation of order during unexpected vacancies, the Z Warriors shall adhere to the following line of succession and interim protocols:
+Presidential Vacancy Protocol: Should the Office of the Z Warriors President become vacant (due to resignation, removal, or absence), the Chief Parliamentary Leader (CPL) shall immediately assume the role of Interim President.
+Chain of Appointment: Upon the CPL's ascension to the Interim Presidency, the Office of the CPL is declared vacant and must be filled immediately by the appointing authority. Authority of Interim Officers: Any individual serving in an Interim capacity shall possess the full constitutional authority, executive powers, and privileges of that office. Their decisions shall be binding and valid as if they were the elected incumbent.
+The 24-Hour Mandate: The Interim Presidency is strictly a temporary measure. A fresh election for the Presidency must be conducted within at least 370 days of the vacancy occurring. The Interim President may not hold the office permanently without winning said election.
+</div>
+
+<div class="law-block">
+<div class="law-title">Veto Powers</div>
+Each of the following offices shall possess the right to veto proposals, decisions, or laws under the specified scope:
+1. The President: Holds the Supreme Executive Veto. May veto any proposed law, administrative order, or judicial recommendation within 48 hours of its passage. Once vetoed, the matter returns to general discussion and may only pass again with a ⅔ member majority.
+2. The Chief Justice (CJI): Holds the Judicial Veto. May suspend or delay any executive or administrative decision that appears unconstitutional, pending a judicial review. Such veto remains valid for 24 hours or until the President rules on it, whichever is earlier.
+3. The Administrator: Holds the Operational Veto. May temporarily halt implementation of any decision that could cause disorder, spam, or violation of group discipline. Must report the veto's justification to the President and CJI within 30 minutes of exercise.
+4. The Leader of Opposition (LoP): Holds the Minority Veto. May request reconsideration of any new law or rule within 24 hours of its announcement. The President may accept or suspend the LoP’s veto; if suspended, the law passes automatically.
+Only one veto per authority may apply to a single matter. A veto must be exercised in writing, with a timestamp and brief reasoning. If two vetoes conflict, the President’s decision shall prevail, subject to later CJI review. Any veto not acted upon within its prescribed duration automatically lapses. A veto may be overridden by a ⅔ majority vote of the total active members. Abusive or repetitive veto use may be reviewed. The Administrator and CJI shall maintain a Veto Registry, documenting every veto exercised, its grounds, and resolution. The Registry will be part of Law 18: The Group Memory Archive Act for transparency. This Act aims to preserve equilibrium between governance, justice, and opposition. It ensures that no single branch dominates, while affirming that the President remains the final constitutional interpretation.
+</div>
+
+<div class="law-block">
+<div class="law-title">Motion of No-Confidence</div>
+The administration’s mandate is contingent upon the collective trust of the Republic, and a formal Motion of No-Confidence may be enacted to challenge the sitting Government.
+Threshold for Removal: A No-Confidence Motion shall be officially passed and considered legally binding if it is proven that more than 50 percent (a simple majority) of the total membership lacks confidence in the current Government. Verification via Digital Plebiscite: The lack of confidence may be verified through an official group poll where the number of votes against the Government exceeds the 50% membership threshold. Verification via Instrument of Dissent: Alternatively, a motion is valid if members provide their names or signatures on a formal document, provided the total number of signatories represents more than 50 percent of the collective.
+Procedural Integrity: All evidence of no-confidence, whether by poll or document, must be authenticated to ensure the results are transparent and free from manipulation. Moratorium on Successive Motions: To ensure administrative stability and allow a new Government sufficient time to implement its agenda, a "cooling-off" period is established. Once a Motion of No-Confidence has been successfully passed against a previous administration, no such motion may be initiated against the newly formed Government for a period of 25 days following its inauguration.
+</div>
+
+<div class="law-block">
+<div class="law-title">Sanctity of Contracts</div>
+Any formal agreement or contract executed between two or more parties within the Republic is legally binding and must be strictly adhered to by all signatories.
+Breach of Agreement: If a party fails to uphold their contractual obligations, the aggrieved party reserves the right to initiate a judicial proceeding. A proven breach may result in a ban of up to 3 months, with the final duration determined at the discretion of the Chief Justice (CJ). Mutual Dissolution: A contract may only be terminated or "broken" without penalty if both parties provide explicit, mutual consent to end the agreement. Withdrawal Protocol: For one party to legally withdraw from an active contract, they must submit a formal written draft outlining the terms of departure. This withdrawal is only valid upon the written agreement and signature of the second party. Judicial Enforcement: In cases of dispute regarding contract interpretation, the Court of Z WARRIORS shall serve as the final authority to ensure fair execution and prevent arbitrary abandonment of duties.
+</div>
+
+<div class="law-block">
+<div class="law-title">Party Recognition and Affiliation Act</div>
+This law formalizes the process by which a member of the Republic may align themselves with a political or organized faction to ensure transparency in collective decision-making.
+Formalization of Membership: A member is officially recognized as part of a party only upon the execution of a formal legal document that explicitly declares their affiliation with that specific organization. Autonomy of the Vote: Every member retains the absolute right to vote in favor of any party or candidate during official polls, regardless of their current affiliation; however, their status as a member of their signed party remains binding for the duration of their commitment.
+Terms of Affiliation: Once a member has signed a document of affiliation, they are considered a formal component of that party for the duration specified in the agreement or until a legal withdrawal is processed. Right of Voluntary Withdrawal: A member may exercise their right to leave a party at any time of their own volition, provided that the original signed document of affiliation did not stipulate a mandatory minimum time period for their stay. Contractual Primacy: If a party affiliation document includes a specific "Term of Service" or expiration date, the member is legally bound to that party until the period concludes, as per the Sanctity of Contracts doctrine.
+</div>
+
+<div class="law-block">
+<div class="law-title">Transfer of Authority</div>
+This provision establishes the rigid framework for the transfer of authority in the event of a leadership vacancy due to impeachment, ensuring the continued stability of the Z WARRIORS Clan.
+Presidential Ascension: In the instance where multiple Senior Presidents exist and one is impeached, the incumbent Junior President shall automatically ascend to the office of Senior President. If there are multiple Junior Presidents, both shall assume the Senior office immediately. Vice-Presidential Elevation: Consequently, upon the ascension of the Junior leadership, the serving Vice-President(s) shall be elevated to the position of Junior President to fill the void. Exemption from Process: This restructuring of the hierarchy is absolute; it requires no re-election or voting procedures and takes effect immediately.
+</div>
+
+<div class="law-block">
+<div class="law-title">Supreme Executive Powers</div>
+This law defines the supreme executive powers vested in the President, establishing the scope of their leadership, emergency protocols, and administrative influence within the Z WARRIORS Clan.
+Executive Orders: The President holds the most powerful office. They are empowered to issue Presidential Orders on any matter, provided such orders remain consistent with the established Constitution. Emergency Powers: The President may declare a State of Emergency for a duration of up to 72 hours. This extraordinary power is restricted to one single invocation per presidential term. Disciplinary Authority: The President maintains the right to temporarily suspend or ban members from the group, contingent upon the absence of a formal objection from the Chief Justice (CJI).
+Administrative Nominations: The President shall have the sole authority to nominate the Nominated Administrator and retains the power to revoke or change this appointment at their discretion. Ceremonial & Award Governance: During the Group Anniversary, the President shall supervise the "Awards Polls." They are responsible for nominating candidates for the Nominated Awards category (including the right to Self-Nominate) and ensuring winners receive appropriate recognition. Electoral Oversight: The President shall function as the Election Commission of Z WARRIORS, exercising the specific powers and mandates detailed under Law 39 of the Clan Constitution.
+</div>
+
+<div class="law-block">
+<div class="law-title">Election Commission (EC)</div>
+This provision establishes the procedural integrity and responsibilities of the Election Commission (EC) to ensure that all democratic processes within the Z WARRIORS Clan are conducted with absolute fairness.
+Jurisdiction over Balloting: The Election Commission is the sole authority responsible for the administration of all elections and polls, including general opinion surveys and official referendums held to challenge judicial decisions. Transparency and Accountability: The EC must operate with total transparency to maintain group trust. In the event of an electoral dispute, the Commission is legally answerable to the Court to justify its actions.
+Voter Roll Management: A formal Voter List must be officially published prior to the commencement of any election or poll. If the EC elects to exclude a member from this list, they are required to provide a transparent and valid justification for the exclusion. Notification of Amendments: Any modifications, additions, or removals within the official Voter List must be communicated through a formal public notice to the entire clan. Collaborative Planning: The EC is duty-bound to design and declare the electoral format. While the EC holds final authority, it must engage in consultative discussions with group members and other high-ranking office bearers during the planning phase.
+</div>
+
+<div class="law-block">
+<div class="law-title">Leader of the Opposition (LoP)</div>
+This provision outlines the punitive and supervisory powers of the Leader of the Opposition (LoP), designed to hold the administration accountable and protect the rights of individual clan members.
+The Weekly Grill & Summary Justice: The LoP is authorized to conduct a formal questioning session for Office Bearers. If an Office Bearer is found to have violated the Constitution or displayed "Moral Turpitude" (bad morals), the LoP may execute an immediate 48-hour ban on said Office Bearer without prior approval. The Acting Vice-Presidency: During the 48-hour suspension of an Administrator, the LoP shall automatically assume the role of Acting banned Office Bearer to ensure administrative stability until the suspension expires.
+Judicial Transition: Upon the conclusion of the 48-hour Emergency Ban, the case shall be automatically referred to the Chief Justice (CJI) for a final verdict. The CJI will determine if additional permanent sanctions are required. The Stay of Execution: The LoP possesses the power to suspend any member's expulsion for a period of 24 hours. During this window, the LoP acts as the member's Defense Counsel to investigate the fairness of the removal.
+The Monthly Performance Audit: As the Official Clan Critic, the LoP shall publish a "Monthly Report Card," providing a public assessment and "grade" of the Administration’s leadership, fairness, and efficiency. Mutual Accountability Protocol: To prevent the weaponization of these powers, the LoP is subject to the Supreme Oversight of the CJI. If the CJI finds the LoP guilty of false accusations or constitutional violations, the CJI may impose direct disciplinary measures.
+</div>
+
+<div class="law-block">
+<div class="law-title">Chief Justice Arbiter of Justice</div>
+This law establishes the Chief Justice (CJI) as the final arbiter of justice within the Z WARRIORS Clan, granting the Court the power to penalize misconduct and maintain constitutional order.
+Punitive Suspension: If a member is found guilty of violating the Constitution or engaging in illicit or immoral conduct, the CJI may impose a temporary suspension (ban). This power is strictly for rehabilitative purposes and cannot be used for permanent expulsion. Electoral Sanctions: He/she possesses the authority to impose voter-deduction penalties. If a party or candidate is found guilty of misconduct, the CJI may deduct a specific number of votes from their tally in the upcoming Presidential or General Election. Dissolution of Government: In the event of proven administrative malfunction or systemic failure, He/she retains the supreme power to dissolve the current government and mandate a transition of power.
+Courtroom Protocol: During a formal hearing, the CJI maintains absolute control. This includes the power to overrule objections, cite members for contempt of court, and dismiss frivolous claims to protect the dignity of the proceedings. Compensatory Restitution: If a member is found guilty of a minor infraction that causes harm to another, the CJI may order them to pay a monetary fine or a small sum as compensation to the aggrieved party. Impeachment Authority: The CJI is empowered to formally impeach any Office Bearer if evidence confirms they have committed a high constitutional offense or breached their oath of office.
+Ad-Hoc Judicial Provision: If the CJI is personally accused of a crime, He/she shall stand as the defendant. In such cases, the President(s) and Vice-President shall jointly appoint an Ad-Hoc Judge to preside over the trial to ensure impartiality. Judicial Review & Referendum: The CJI’s decision is not absolute. A verdict may be overturned if more than 50% of the Z WARRIORS Congress votes in favor of a challenge. This can be achieved through a formal poll or by collecting a signed petition representing the majority.
+</div>
+
+<div class="law-block">
+<div class="law-title">Tiered Leadership Protocol</div>
+This provision outlines a specific electoral format that allows for a multi-layered executive branch, ensuring that the most popular candidates collectively lead the Z WARRIORS Clan.
+The Binary Victory System: If the Election Commission (EC) elects to implement the "Tiered Leadership Protocol" for a Presidential Election, the outcome shall be determined by vote distribution rather than a single winner. The candidate or candidates securing the highest volume of votes shall be inaugurated as Senior President(s). Junior Executive Appointment: Under this same protocol, the candidate or candidates securing the second-highest volume of votes shall automatically assume the office of Junior President(s).
+Distribution of Authority: Both the Senior and Junior Presidents are vested with Presidential Powers; however, their specific jurisdictions and the hierarchy of their commands are distinct. The precise limitations and variations of these powers are governed strictly by Law 43 of the Z WARRIORS Clan Constitution. Mandatory Recognition: Once the EC certifies the results under this protocol, the transition of power to both tiers of the Presidency must be recognized by all members and office bearers immediately.
+</div>
+
+<div class="law-block">
+<div class="law-title">Distribution of Power (SP and JP)</div>
+This provision delineates the specific distribution of power between the Senior President (SP) and the Junior President (JP), establishing a clear chain of command within the High Command.
+Legislative Precedence: The Senior President possesses a streamlined path for the ratification of laws. While both can propose legislation, the procedural requirements for an SP to pass a law are significantly less rigorous than those required for a JP, as defined in Law 45. Administrative Appointments: The Office of the Senior President is entitled to appoint up to three Nominated Administrators. In contrast, the Junior President(s) are limited to the appointment of two Nominated Administrators. Disciplinary Duration: In matters of group discipline, the SP may impose a temporary suspension on members for a maximum of 72 hours. The JP’s authority for independent suspension is capped at a maximum of 48 hours.
+Electoral Oversight: The Senior President serves as the primary head of the Election Commission. The Junior President acts in a Consultative/Advisory capacity, assisting in the process but deferring to the SP's final decisions. Emergency Declarations: The SP is empowered to declare a State of Emergency for a duration of 72 hours. The JP may only invoke emergency powers for a period not exceeding 48 hours. Prestige and Aura: It is formally recognized that the Senior President holds the Highest Sovereign Aura within the Clan. While both roles are respected, the SP carries the ultimate symbolic and executive weight in all Clan affairs.
+Structural Dissolution Clause: The tiered system (SP and JP) shall be summarily abolished for the remainder of the current term if a deadlock occurs between the JP and the Acting CJI, or between the VP and an Administrator (Nominated or Elected), provided the CJI formally disagrees with the executive conduct. Upon dissolution, the clan shall revert to a standard leadership model to restore order. This means that the Junior Presidents shall hold the Office of the President in full capacity, just as the Senior Presidents do; both ranks are officially recognized as the supreme executive heads of the Clan, sharing the same title and legitimacy.
+</div>
+
+<div class="law-block">
+<div class="law-title">Nominated vs Elected Administrators</div>
+This provision outlines the responsibilities and authorities of both Nominated Administrators (NA) and Elected Administrators (EA). While both serve the Clan, Nominated Administrators possess additional specialized powers as detailed in Law 46.
+Order and Assistance: Administrators are the primary guardians of Clan Discipline. They are tasked with maintaining group decorum and providing essential assistance to members regarding official documentation, procedures, and general inquiries. The Succession Protocol: A Nominated Administrator is eligible for immediate promotion to the office of Vice-President strictly in the event of a VP’s impeachment. To qualify for this elevation, the NA must formally align with and join the Majority Party. This promotion does not apply if a VP resigns voluntarily or is removed directly by a Party Leader.
+Executive Support: Administrators function as the Primary Attaches to the High Command. They provide logistical and strategic support to the Presidents and Vice-Presidents to ensure the smooth execution of Clan operations. Legislative Contribution: Administrators are empowered to participate in the ratification of laws. They may pass legislation independently, provided they satisfy the specific constitutional criteria established in Law 45. Opposition Oversight: To prevent the obstruction of justice, the Administrators hold the collective power to impeach the Leader of the Opposition (LoP). They may demand a new appointment if it is proven that the LoP has engaged in the malfeasance of power or systemic misuse of their office.
+</div>
+
+<div class="law-block">
+<div class="law-title">Office Capacities</div>
+This provision establishes the absolute maximum capacity for each office within the Z WARRIORS Clan to ensure a balanced distribution of power and prevent administrative overcrowding.
+Presidential Ceiling: The total number of individuals holding the title of President is capped at four (4). Tiered Presidential Limits: Within the executive branch, the offices of Senior President and Junior President are each strictly limited to a maximum of two (2) incumbents. Vice-Presidential Quota: The office of the Vice-President shall have a maximum allowance of three (3) individuals serving simultaneously. Judicial Cap: The High Court of the Z WARRIORS Clan shall consist of no more than two (2) Chief Justices. Administrative Quota: The combined total of Nominated Administrators and Elected Administrators is restricted to a maximum of five (5) office bearers. Opposition Leadership: The office of the Leader of the Opposition (LoP) is a singular position, with a maximum capacity of one (1) individual to ensure a unified dissenting voice.
+</div>
+
+<div class="law-block" id="c-amend" style="border: 2px solid var(--primary); padding: 15px; border-radius: 8px;">
+<div class="law-title">📜 THE CONSTITUTIONAL STABILITY & ELECTORAL REGULARITY AMENDMENT ACT, 2026</div>
+Adopted by Two-Third (2/3) Majority of Active Members
+Article 1 – Supremacy of Structural Safeguard
+Any amendment, alteration, reinterpretation, or restructuring affecting: The Executive Branch, The Judiciary, The Office of the President, The Office of Chief Justice, Election procedures, Appointment or removal mechanisms shall require approval by not less than two-thirds (2/3) of total active membership. No simple majority vote shall suffice for structural constitutional modification.
+Article 2 – Monthly Presidential Confidence Mandate
+A Presidential Confidence Poll shall be conducted once every calendar month. If the President fails to secure simple majority confidence: A Special Presidential Election must be conducted within 5 days. Failure to conduct the poll renders the office procedurally vacant.
+Article 3 – Protection of Judicial Independence
+The Chief Justice shall not be appointed or removed solely by executive authority. Any appointment or removal of Chief Justice requires: Two-thirds (2/3) member approval. Executive unilateral judicial appointment is unconstitutional.
+Article 4 – Referendum Supremacy Clause
+Where two-thirds (2/3) of active members approve a constitutional question via formal poll: The result shall be binding. No judicial authority may invalidate it except by another two-thirds vote.
+Article 5 – Automatic Supersession Clause
+This Amendment shall supersede and replace: Any interpretation of Law 2 permitting structural change by simple majority. Any executive power allowing unilateral appointment of Chief Justice. Any judicial ruling declaring structural changes valid without 2/3 approval. Any provision inconsistent with Articles 1– 4 herein.
+Article 6 – Immediate Effect
+This Amendment comes into force immediately upon certification of the 2/3 vote. All inconsistent acts stand void to the extent of inconsistency.
+🔁 WHAT THIS REPLACES / NEUTRALIZES
+It overrides: The February 28 Order’s interpretation of Law 2, The simple-majority structural doctrine, Executive-based CJI appointment model, Any ruling closing future constitutional challenges. But it does NOT disturb ordinary laws passed by simple majority unless structural.
+</div>
+
+<div class="law-block">
+<div class="law-title">CONCLUSION</div>
+This Constitution not only governs the day-to-day conduct and governance of the group but also fosters an environment where creativity, debate, and fun coexist with order and accountability. Through structured elections, referendums, grievance mechanisms, and clearly defined rules for engagement, every member has a voice, a role, and a path to participate meaningfully in the group’s growth. By adhering to these laws, Z WARRIORS becomes a community that celebrates collaboration, values contribution, and respects individuality. Conflicts are resolved with fairness, contributions are recognized, and rules are enforced with transparency and compassion. The safeguards within this Constitution ensure that no loophole can undermine the foundational principles of democracy, free expression, and mutual respect. Ultimately, this Constitution serves as a beacon for the group, reminding us that leadership is a responsibility, participation is a privilege, and respect is the cornerstone of our shared journey. It is our collective commitment to live by these laws, honor the spirit of the group, and uphold the legacy of Z WARRIORS, ensuring that every interaction strengthens our community and inspires camaraderie, fun, and growth for all.
+⚔ Together, we stand strong. Together, we are Z WARRIORS. 🛡
+</div>
+                </div>
+            </section>
+
+            <section id="chronicles" class="tab-content">
+                <h1>The Grand Chronicles</h1>
+
+                <div class="card" style="border: 2px solid var(--secondary);">
+                    <h3 style="margin-top: 0;">⚖️ Supreme Court Verdict Archiver</h3>
+                    <p><strong>Case 001-GT:</strong> The Great Trial (Nov 2025). Verdict: Acquitted 10-6.</p>
+                </div>
+
+                <div class="doc-text">
+I. THE INAUGURAL MOMENT — 26 NOVEMBER 2024
+The history of Z Warriors begins on 26 November 2024, a date that would eventualy be remembered not merely as a creation point but as the genesis of a future constitutional republic. On this evening, Vardan Singh, acting independently and without any vision beyond simple academic coordination, founded what was then an unremarkable WhatsApp group.
+The founding seven — Vardan (Founder), Ahaan, Mirza, Yatharth, Akshat, Arnav, and Divyam — formed the original core. These names, now etched into the institutional memory of Z Warriors, were simply classmates then: individuals unaware that they were laying the groundwork for the most politicaly sophisticated group their school would ever see.
+The early days were uncomplicated. Messages were short. Conversations were casual. The group existed for communication, not governance. Yet beneath these simple beginnings lay the quiet emergence of authority, responsibility, and the seeds of organized leadership.
+
+I. FROM SIMPLE CHAT TO INFORMAL GOVERNMENT (DECEMBER 2024 – JANUARY 2025)
+Within weeks, Z Warriors began evolving. Although no one declared it, Vardan became the natural centre of order. He removed spam, setled arguments, initiated discussions, added new members (cautiously), and ensured stability.
+The other six founding members contributed in distinct ways:
+• Ahaan, calm and level-headed, often served as a voice of mild reason.
+• Mirza, sharp-minded, frequently analysed disputes with surprising maturity.
+• Yatharth contributed humour, but also initiated discussions that required mediation.
+• Akshat supported academic coordination.
+• Arnav, who would later develop strong political instincts, was stil emerging.
+• Divyam, active and expressive, added energy to the early interactions.
+This period — December 2024 to January 2025 — is best termed the Era of Natural Governance. No elections, no laws, no ofices — only social hierarchy formed through respect and necessity. Yet, disputes also began appearing. Minor disagreements between members revealed a simple truth: without structure, stability could not last forever. The need for organized leadership was growing.
+
+II. THE DAWN OF POLITICAL AWARENESS (FEBRUARY – MARCH 2025)
+By February, the group’s identity had shifted. It was no longer a casual chat; it was a functioning community. And functioning communities develop expectations: fairness, discipline, responsibility, and mechanisms to resolve disputes.
+This was the period when the idea of formal roles first appeared.
+1. Administrator Proposal: Members unoficialy agreed that Vardan alone should not be forced to control the group’s rising complexity. A second authority — an Administrator — would soon become necessary.
+2. The First Thoughts of a Judiciary: Arguments in February and March revealed the need for impartial decisions. The concept of a Chief Justice began to surface informaly in conversations. No one knew it then, but this idea would soon give birth to the most powerful judicial institution ever seen in a school WhatsApp group.
+3. Early Proposals for Rules: Around March, several members discussed forming a set of basic behavioural guidelines to maintain order and prevent the group from descending into chaos. Thus began the awakening of constitutional thought.
+
+IV. NEW ADDITIONS & THE EXPANSION OF THE GROUP (APRIL – JULY 2025)
+By mid–2025, Z Warriors experienced its first significant expansion. The group, originaly seven members, began atracting broader participation.
+New joiners included:
+• Ayaan, joining in July 2025, bringing energy and enthusiasm.
+• Omar, also joining in July, adding sharp humour and occasional chaos.
+These additions transformed the group dynamic. With more members than ever before, disagreements became more frequent and more intense. Political diferences began to surface. Aliances started forming instinctively. While originaly the group had been built on friendship alone, it now required real governance.
+
+V. THE FIRST SIGNS OF INSTITUTIONAL NECESSITY (MAY – JULY 2025)
+The months folowing the group’s expansion were marked by:
+1. Growing Disputes: What once were minor disagreements now evolved into debates requiring interpretation.
+2. Increasing Administrative Burden: One founder could no longer uphold peace alone.
+3. The Need for Elections: Multiple members expressed interest in leadership. The group began discussing fair means of choosing them. Elections were the only logical path.
+4. The Rise of Ideological Divisions: Even without formal labels, early political camps formed — later becoming UPA and NDA.
+5. Higher Expectations: Members demanded beter organization, quicker decision-making, and accountability. It was now clear: Z Warriors needed a constitution.
+
+VI. THE CONSTITUTIONAL ERA BEGINS (AUGUST 2025)
+By August, the pressure for organization reached its peak. President Vardan initiated the historic drafting of the Z Warriors Constitution — a moment that changed the group forever.
+A. The Preamble: A formal declaration of justice, democracy, free expression, respect, and structured order. This became the soul of Z Warriors.
+B. The First 20 Laws: A massive legislative package was adopted, including Veto rules, Referendum procedures, Judicial ethics, Administrative boundaries, Behavioural guidelines, Emergency powers, Term limits, Weekly debates, Group memory archives, Protection of the Basic Structure. No student group had ever achieved such depth.
+C. Establishment of Ofices: Three major institutions were formaly created:
+1. The President — overseeing executive authority
+2. The Administrator — enforcing discipline
+3. The Chief Justice — ensuring fairness
+From this moment onward, Z Warriors was no longer a casual group — it had become a constitutional democracy.
+
+VI. THE RISE OF POLITICAL COMPETITION (SEPTEMBER 2025)
+With institutions in place, elections began. Campaigns, manifestos, aliances, rivalries — the ful machinery of democracy awakened.
+Two major aliances formed:
+• UPA, influenced by Vardan and Balram
+• NDA, with its own competitive leadership circle
+Elections for Admin and CJI became regular events. Political debates flourished. The constitutional machine came alive.
+
+VII. THE PATH TO LATE 2025
+By the end of Part I’s timeframe — late September 2025 — Z Warriors was now a fuly functioning democratic microstate, ready to enter the dramatic diplomatic, judicial, and political upheavals that would define the months leading toward November 2025, the anniversary period.
+
+GRAND ANNIVERSARY CHRONICLE OF Z WARRIORS
+PART II — DIPLOMACY, uPHEAVAL, JuDICIAL ERuPTIONS, AND THE buILD- uP TO THE GREAT CRISIS
+
+IX. THE EXPANSION OF THE REPUBLIC & RISING COMPLEXITIES (SEPTEMBER – OCTOBER 2025)
+By early September 2025, Z Warriors had matured into an institution possessing a constitutional backbone, democratic machinery, a defined executive, a judiciary, and an administrative framework. The rapid reforms of August had produced a structured micro-republic, and with this structure came new responsibility, new expectations, and new chalenges.
+The group had grown in size. Discussions multiplied. Factions consolidated. The constitution’s promise of equality and order now faced the pressures of real political behaviour.
+During this period, multiple key dynamics emerged simultaneously:
+1. The Normalization of Elections: Elections became routine. Every leadership post — Administrator, CJI, Opposition Leader, Commitee Head — atracted candidates who saw governance as a platform for influence and prestige.
+2. The Emergence of Strong Personalities: Members such as Balram, Kushagra, Mirza, Arnav, and Yatharth gained ideological identities. The early republic now had political players — not merely participants.
+3. The Rise of Intelectual Legalism: Debates increasingly cited articles, clauses, and precedents. The constitution was no longer just a text — it was a binding doctrine shaping the life of the group.
+4. The Continuous Growth of the Group: New members, such as Ayaan and Omar, strengthened the energy of the community. Their entry in July had created turbulence, but by September, their presence felt institutional.
+Z Warriors was no longer a fledgling group. It was a functioning political entity.
+
+X. THE FIRST SIGNS OF EXTERNAL DIPLOMACY — THE STRAW HAT CONNECTION
+Around late September 2025, an unexpected development occured: Z Wariors found itself increasingly intersecting with the afairs of another group caled Straw Hat Pirates. Initialy, this interaction was informal — a result of overlapping friendships. However, by October, the intersection became political.
+What made the Straw Hat Pirates significant? They were a group struggling with internal conflict, power imbalances, unclear leadership, and unstable systems. As Z Warriors looked outward, it saw a community in disarray — a mirror of what might have happened to itself without constitutional order. Their instability would soon ignite one of the most dramatic diplomatic episodes in the region.
+
+XI. THE STRAW HAT COLLAPSE — THE NIGHT OF THE DUOCRACY (EARLY OCTOBER 2025)
+In early October 2025, the Straw Hat Pirates experienced their greatest crisis: a coup-like removal of administrators. Kanishk and Arnav, in a coordinated move, removed the existing leadership — including Kushagra and Yatharth — and consolidated the group under a dual administration.
+This was no routine fight. It was a complete colapse of democratic governance.
+Within hours, an explosive message appeared in their group — a manifesto-like denunciation writen by Kushagra. The document accused the new Straw Hat leadership of: unlawful removal, betrayal of democratic procedure, manipulation of group sentiment, and the deliberate destruction of internal order. He declared that Straw Hat Pirates had falen into dictatorship and urged a moral revolt.
+His closing line — half-poetry, half-political satire — became iconic: “Arnav banega Annanas, andhkaar ka ho jayega sanyas.”
+The message spread beyond Straw Hat Pirates and reached Z Warriors. Suddenly, a domestic colapse became a regional concern.
+
+XI. PRESIDENT VARDAN’S DIPLOMATIC INTERVENTION
+Upon receiving accounts of the colapse, President Vardan issued a formal diplomatic communication — a rare event never before seen in the micro-republic.
+The speech was: dignified yet sharp, humorous yet diplomatic, critical yet constructive.
+He expressed concern over the authoritarian shift within Straw Hat Pirates, highlighted the importance of democratic procedure, and contrasted the chaos of their system with the stability of Z Wariors’ constitution. This moment marked the emergence of Z Warriors as a regional democratic authority — a group capable of influencing and guiding external communities.
+
+XII. THE KANISHK–VARDAN TREATY — THE FIRST INTER-GROUP DIPLOMATIC PACT
+Folowing the colapse, Kanishk, one of the coup administrators, directly approached President Vardan with a proposal. He sought political asylum inside Z Warriors in exchange for his agreement to completely dissolve the Straw Hat Pirates.
+This was historic. It was the first time Z Warriors exercised: diplomatic negotiation, asylum policy, international treaty-making authority.
+The Treaty of Dissolution was drafted and accepted. Its results were:
+1. Straw Hat Pirates ceased to exist.
+2. Kanishk was granted safe integration into Z Warriors.
+3. Any further instability was prevented from spiling over.
+For the first time, Z Warriors acted as a stabilizing political power on a broader platform.
+
+XIV. THE FALL OF THE COMMUNITY UNION
+Shortly after the treaty, and considering the new diplomatic ties, a combined Community Union was atempted — merging both groups under a shared community umbrela. The intention was noble: cooperation, unity, shared discussions, and peaceful coexistence.
+However, diferences proved irreconcilable: Straw Hat veterans carried conflict with them. Z Warriors operated under strict constitutional discipline. Norms, rules, and expectations clashed dramaticaly.
+The union colapsed within days. President Vardan, recognizing the threat of instability, formaly abolished the union, restoring ful internal sovereignty to Z Wariors. This decision is now widely considered one of the most important strategic choices of the year.
+
+XV. THE AGE OF JUDICIAL INTENSIFICATION (OCTOBER – NOVEMBER 2025)
+Once diplomatic turbulence setled, internal tensions resurfaced. Z Warriors entered a period of extraordinary judicial activity — a wave of hearings, petitions, inquiries, and constitutional chalenges.
+Reasons for this surge: The group had grown larger, Political aliances were firmer, Institutions were stronger, Members had higher expectations, Legal avenues were now available, Elections introduced rivalry, Behaviour standards had been codified, Violations required adjudication.
+Key developments included: Petitions questioning administrative decisions, Appeals over electoral eligibility, Debate over the limits of the President, Chalenges to early judicial opinions, Frequent need for recusal and temporary judges, Tensions between executive and judiciary. Judicial life had become a central pilar of the republic.
+
+XVI. EMERGENCE OF THE CJI–PRESIDENT TENSIONS
+As the judiciary gained strength, so did its independence. The CJI at the time, Mirza, began exercising broad judicial interpretation. In contrast, President Vardan — commited to executive responsibility — defended constitutional boundaries. Their diferences grew gradualy, then rapidly accelerated. The stage was being set for the most dramatic constitutional conflict in group history. It would soon evolve into the Great Trial, where the President himself would stand accused.
+
+GRAND ANNIVERSARY CHRONICLE OF Z WARRIORS
+PART III — THE GREAT TRIAL, RESTORATION, PRE- ANNIVERSARY REFORMS & A CREATIVE ONE-YEAR TIMELINE
+
+XVI. THE GREAT TRIAL — THE MOST DRAMATIC MOMENT IN Z WARRIORS HISTORY
+By early November 2025, tensions between the executive and the judiciary reached an unprecedented boiling point. The constitutional machinery that had grown powerful over the past year now faced its greatest test.
+CJI Mirza, emboldened by months of judicial authority, filed a formal case of constitutional breach — nearly equivalent to treason — against: President Vardan Singh, Leader of Opposition Balram, Former CJI Kushagra.
+This was the first time in the republic’s history that the siting President was placed under judicial scrutiny.
+A. The Charges: Mirza claimed that the trio had disrupted constitutional norms and influenced political outcomes unfairly. Though vague in specifics, the alegation carried extreme weight due to its symbolic gravity.
+B. Immediate Shockwaves: The case shook the group. It divided members. It unleashed confusion. No one had ever seen a President put on trial, An Opposition Leader implicated alongside him, And a former CJI accused simultaneously. It was a constitutional earthquake.
+
+XVII. THE PRESIDENT'S DEFENCE — A MASTERPIECE OF POLITICAL LOGIC
+President Vardan delivered a detailed, structured rebutal that would later be regarded as one of the finest constitutional defences ever writen in the group.
+Key Points of His Argument:
+1. The Voter-List Miscalculation: Mirza had asserted that 25 members existed, subtracted 7, and declared a requirement of 3/5 of 18. Vardan exposed the flaws: Several individuals (Mirza, Ahaan, Omar) had two accounts, which cannot be counted. TVP was newly added and not eligible. Some names belonged to old lists. The real eligible voter count was 16, not 25 or 18. This rewrote the mathematical foundation of the case.
+2. Presidential Voting Cannot Be Denied: He quoted constitutional norms establishing voting as an inseparable member right, immune from arbitrary judicial restriction.
+3. Omar’s Side Shift Was After Voting Ended: Thus, legaly irrelevant.
+4. The Case Lacked a Clear Constitutional Clause: Mirza had ofered accusation without foundation.
+This defence flipped the case entirely.
+
+XIX. THE ACQUITTAL — 10 OUT OF 16 (THE GOLDEN NUMBER)
+The group voted. The final result: 10 votes in favour of President Vardan, 6 against. The requirement for 3/5 of 16 was: 9.6 → rounded to 10. The President achieved exactly that number.
+Thus: He was acquited completely. The charges were declared invalid. The case was dissolved. Judicial credibility was shaken. This moment would become symbolic — the survival of executive legitimacy through democratic strength.
+
+XX. THE FALL OF THE JUDICIARY (TEMPORARILY)
+Folowing the acquital, President Vardan issued a firm executive announcement: Mirza was disqualified as CJI for one week due to: misguiding the group, miscounting voters, misinterpretation of procedure, destabilizing governance. This created a judicial vacuum, unprecedented in the republic’s history. For several days, the group had no Chief Justice.
+
+XXI. THE RESTORATION OF THE JUDICIARY
+Recognizing the danger of a judiciary-free administration, Vardan reinstated Mirza after the disqualification period. Why? Because: Without a CJI, grievances would pile up. Elections would lack oversight. Petitions would have no authority. The constitution itself required a judicial guardian. This restoration marked the beginning of a slow reconciliation.
+
+XXI. THE ERA OF APOLOGIES, FORGIVENESS & RESET (MID–NOV 2025)
+To stabilise the nation, CJI Mirza demanded apology leters from the trio.
+1. President Vardan submited a respectful, diplomatic leter acknowledging the judicial process while maintaining innocence.
+2. Leader of Opposition Balram also wrote an apology, preserving dignity without accepting false guilt.
+3. Former CJI Kushagra did not submit his apology immediately.
+Mirza then issued a landmark ruling: Vardan and Balram’s political rights were restored. Kushagra’s status remained pending until apology submission. This was a soft reconciliation — a return to normalcy.
+
+XXII. PRE-ANNIVERSARY REFORMS & PRESIDENTIAL RESIGNATION ANNOUNCEMENT
+As the anniversary approached, President Vardan made the most important declaration of the year: He would resign on 27 November at 12:00 AM. This announcement was historic. A ful year of presidential service would conclude.
+Key elements of the resignation declaration:
+1. New presidential elections would begin 27 November at 3:30 PM.
+2. Any independent candidate could run (UPA or NDA).
+3. If one candidate won, he would become ful President.
+4. If two candidates jointly fought, they would form a Presidential Bench, sharing executive power.
+5. A Vardan Legacy Act would be drafted to honour: the founding of Z Warriors, constitutional creation, one year of stable leadership, diplomatic achievements, judicial reforms, administrative professionalism.
+This speech was regarded as one of the most presidential moments in group history — combining order, dignity, and democratic succession.
+
+XXIV. POLITICAL CALM BEFORE THE ANNIVERSARY — A RARE STABILITY
+For the first time in many months, the group stood united: The judiciary was stable. The executive remained legitimate. The legislature (members) was calm. Elections were approaching. Al major disputes were setled. Diplomacy with Straw Hat Pirates was complete. Kanishk had been successfuly integrated. The constitution was functioning flawlessly.
+On 25 November 2025, the eve of the anniversary, Shreyansh joined the group — symbolizing that even after one year, Z Warriors continued growing. This marked the close of the first historic cycle.
+
+CREATIVE TIMELINE — “THE TWELVE AGES OF Z WARRIORS”
+AGE I — The Birth Flame (Nov 2024): Z Warriors is created. Seven founders unknowingly ignite a future republic.
+AGE I — The Quiet Republic (Dec 2024 – Jan 2025): Natural governance rules. Friendship serves as constitution.
+AGE II — The First Rumblings (Feb – Mar 2025): Arguments appear. Authority becomes necessary. Ideas of Admin and CJI emerge.
+AGE IV — The Expansion Winds (Apr – Jul 2025): Ayaan and Omar join. The group grows louder, sharper, more political.
+AGE V — The Constitutional Forge (Aug 2025): The Preamble is born. Twenty laws folow. Three branches emerge.
+AGE VI — Rise of Parties (Sep 2025): UPA and NDA crystalize. Elections become routine.
+AGE VI — The Straw Hat Storm (Oct 2025): Duocracy rises. Kushagra’s revolt. Diplomatic concern spreads.
+AGE VII — The Treaty of Dissolution (Oct 2025): Kanishk seeks asylum. Straw Hat Pirates fal. Z Warriors becomes regional power.
+AGE IX — The Judicial Boom (Late Oct – Early Nov 2025): Petitions flood. Judicial authority peaks.
+AGE X — The Great Trial (Mid Nov 2025): President, LOP, and CJI (former) stand accused. The republic trembles.
+AGE XI — Restoration & Resignation (Mid–Late Nov 2025): Acquital. Disqualification. Reinstatement. Apologies. Resignation announcement.
+AGE XI — The Anniversary Dawn (25 Nov 2025): Peace returns. Elections await. A new year begins.
+
+“THE VARDAN ADDRESS — A TRYST WITH bROTHERHOOD”
+(PRESIDENTIAL CLOSING SPEECH bY VARDAN SINGH ON THE FIRST ANNIVERSARY OF Z WARRIORS)
+
+My felow Warriors,
+One year ago, on a quiet evening in November, we set forth on a journey without knowing its magnitude. What began as a simple gathering of seven classmates has, through storms and triumphs, risen into a community bound not by convenience, but by conviction; not by numbers, but by ideals.
+Tonight, as we stand at the threshold of our second year, we pause — not in hesitation, but in reflection — for we have lived through an era that wil not come again. There comes a moment in the life of every group when it touches the highest edge of transformation. For us, that moment is now.
+It is not the destiny of a chat that we celebrate, but the destiny of a community that dared to choose order over chaos, debate over silence, democracy over drift, and fraternity over faction.
+Over twelve months we have built a republic of thought — a place where disagreements sharpen the mind, where rules strengthen freedom, and where friendship is honoured with responsibility.
+We have known conflict, yes. We have endured disputes, yes. We have seen crises shake the very pilars of our constitution. Yet through every storm, Z Warriors has stood firm — not because of authority, not because of law alone, but because of the unshakeable faith of its members.
+In this faith lies the true power of Z Warriors: the power of a group that refuses to break, that refuses to fal silent, that refuses to forget its promise to itself.
+Tonight, as I prepare to lay down the ofice that has been my honour to hold, I do not speak with pride alone, but with profound gratitude. For the presidency is not a throne — it is a trust. And trust, once given by friends, is a gift that time cannot erode.
+My journey ends, but our journey continues. Tomorrow, new leaders shal rise. New debates shal echo. New laws shal be writen. And new memories shal be forged on the anvil of shared purpose.
+Let us therefore pledge that the year ahead shal not merely carry forward our legacy — it shal surpass it. If the past year was the year of creation, then let the next be the year of elevation.
+Let us go forward as a community united by reason, guided by justice, and strengthened by friendship — toward a future worthy of the name Z Warriors.
+The light we have lit shal not dim. The constitution we have crafted shal not weaken. And the spirit we have built — that spirit of unity, dignity, and democratic courage — shal guide every step we take.
+This is our tryst — not with destiny alone, but with each other. May the second year of Z Warriors begin not with fear, not with conflict, but with the calm confidence of a family that has walked through fire and learnt to walk taler.
+Jai Z Warriors.
+Jai Friendship.
+Jai Brotherhood.
+
+— President Vardan Singh
+Founder of Z Warriors
+26 November 2025.
+                </div>
+            </section>
+
+            <section id="citizens" class="tab-content">
+                <h1>Citizen Registry</h1>
+                
+                <h2 style="color:var(--text-main); background: var(--bg-surface-hover); padding: 10px; border-left: 4px solid var(--secondary);">🧭 Core Active / Leadership Cluster</h2>
+                <div class="grid-2">
+                    <div class="id-card">
+                        <div class="avatar" style="background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0V6vB4N4wW0y6vR8a9W4z-zB5yO1g_xX_8w&s') center/cover;"></div>
+                        <div><h3 style="margin:0; color:var(--primary);">Vardan Singh</h3><p style="font-size:0.8rem; color:#aaa; margin:0;">Architect of Republic</p></div>
+                    </div>
+                    <div class="id-card">
+                        <div class="avatar">M</div>
+                        <div><h3 style="margin:0; color:var(--primary);">Mirza</h3><p style="font-size:0.8rem; color:#aaa; margin:0;">President (Suspended)</p></div>
+                    </div>
+                    <div class="id-card">
+                        <div class="avatar">SA</div>
+                        <div><h3 style="margin:0; color:var(--primary);">Sheikh Anas</h3><p style="font-size:0.8rem; color:#aaa; margin:0;">Strategic Observer</p></div>
+                    </div>
+                    <div class="id-card">
+                        <div class="avatar">B</div>
+                        <div><h3 style="margin:0; color:var(--primary);">Balram</h3><p style="font-size:0.8rem; color:#aaa; margin:0;">Former LoP / Stabilizer</p></div>
+                    </div>
+                    <div class="id-card">
+                        <div class="avatar">D</div>
+                        <div><h3 style="margin:0; color:var(--primary);">Divyam</h3><p style="font-size:0.8rem; color:#aaa; margin:0;">WOTT Holder</p></div>
+                    </div>
+                </div>
+
+                <h2 style="color:var(--text-main); background: var(--bg-surface-hover); padding: 10px; border-left: 4px solid var(--secondary); margin-top:30px;">⚖️ Power / Strategic Actors</h2>
+                <div class="grid-2">
+                    <div class="id-card"><div class="avatar">AK</div><div><h3 style="margin:0; color:var(--primary);">Arnav Kumar</h3><p style="font-size:0.8rem; color:#aaa; margin:0;">Control-oriented</p></div></div>
+                    <div class="id-card"><div class="avatar">AS</div><div><h3 style="margin:0; color:var(--primary);">Arnav Singh</h3><p style="font-size:0.8rem; color:#aaa; margin:0;">CJI / CLSK Leader</p></div></div>
+                    <div class="id-card"><div class="avatar">K</div><div><h3 style="margin:0; color:var(--primary);">Kushagra</h3><p style="font-size:0.8rem; color:#aaa; margin:0;">Former CJI</p></div></div>
+                    <div class="id-card"><div class="avatar">J</div><div><h3 style="margin:0; color:var(--primary);">Jaivardhan</h3><p style="font-size:0.8rem; color:#aaa; margin:0;">Strategic alignment</p></div></div>
+                </div>
+            </section>
+
+            <section id="realtime" class="tab-content">
+                <h1>Live Governance Hub</h1>
+                <p><strong>IMPORTANT FOR VARDAN:</strong> To make this page work in real-time for everyone and email <span class="highlight">vardansingh282011@gmail.com</span>, you must paste your Google Forms and Google Sheets links into the `<iframe>` tags in this code.</p>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>🗳️ Formal Petition</h3>
+                        <p>Embed your Google Form here for voting.</p>
+                        <iframe class="iframe-container" src="https://docs.google.com/forms/d/e/1FAIpQLSdFUeVUhT9UNEV4W_8eIuu8pUJibNJaII6p67T2KmkYxMibOw/viewform?usp=publish-editor">Loading…</iframe>
+                    </div>
+
+                    <div class="card">
+                        <h3>✍️ Live Oath Signatures</h3>
+                        <p>Embed your Google Sheet here to show live signers.</p>
+                        <iframe class="iframe-container" src="https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pubhtml?widget=true&amp;headers=false">Loading…</iframe>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 30px;">
+                    <h3>📝 Citizenship Application (Emails Vardan)</h3>
+                    <p>Submitting this form via Google Forms will email vardansingh282011@gmail.com directly.</p>
+                    <iframe class="https://docs.google.com/forms/d/e/1FAIpQLSdhZ4_bR6UC6QVodXH141ekmpHGhCzJ5SKkaAMArJp_QPBtSQ/viewform?usp=publish-editor">Loading…</iframe>
+                </div>
+            </section>
+
+            <section id="otaku" class="tab-content">
+                <div class="card" style="border: 2px dashed var(--primary); text-align: center;">
+                    <h1>🤖 Otaku Bot Interface</h1>
+                    <img src="https://upload.wikimedia.org/wikipedia/en/d/d0/C.C._Code_Geass.png" style="width: 200px; border-radius: 10px;">
+                    <p>Welcome to the YouTube Shorts coordination center.</p>
+                    <button class="btn" style="width: auto;">Initiate Script Sequence</button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <button id="scrollTop" onclick="window.scrollTo(0,0)">⬆ Top</button>
+
+    <footer>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 30px; height: 20px; background: var(--soviet-red); display: flex; align-items: center; justify-content: center; border: 1px solid #ffcc00;">
+                <span style="color: yellow; font-size: 10px;">☭</span>
+            </div>
+            <span style="font-weight: bold; font-size: 0.9rem;">State Anthem</span>
+        </div>
+        <div>
+            <audio id="anthem-audio" src="ussr_anthem.mp3" controls style="height: 30px;"></audio>
+        </div>
+    </footer>
+
+    <script>
+        // Tab Navigation
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Feature 26: Super Saiyan Theme Toggle
+        const themes = ["dark", "light", "saiyan"];
+        let currentThemeIndex = 0;
+        function cycleTheme() {
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            const newTheme = themes[currentThemeIndex];
+            if(newTheme === "dark") {
+                document.body.removeAttribute("data-theme");
+            } else {
+                document.body.setAttribute("data-theme", newTheme);
+            }
+        }
+
+        // Feature 19: Scroll to Top
+        window.onscroll = function() {
+            const btn = document.getElementById("scrollTop");
+            if (document.body.scrollTop > 500 || document.documentElement.scrollTop > 500) {
+                btn.style.display = "block";
+            } else {
+                btn.style.display = "none";
+            }
+        };
+
+        // Law Search Filter
+        function filterLaws() {
+            let input = document.getElementById('lawSearch').value.toLowerCase();
+            let laws = document.getElementsByClassName('law-block');
+            for (let i = 0; i < laws.length; i++) {
+                if (laws[i].innerText.toLowerCase().includes(input)) {
+                    laws[i].style.display = "block";
+                } else {
+                    laws[i].style.display = "none";
+                }
+            }
+        }
+
+        // Save Anime Quote locally
+        function saveQuote() {
+            const input = document.getElementById('quote-input').value;
+            if(input) {
+                document.getElementById('daily-quote').innerText = `"${input}"`;
+                document.getElementById('quote-input').value = "";
+                alert("Quote saved to Dashboard display.");
+            }
+        }
+    </script>
+</body>
+</html>
